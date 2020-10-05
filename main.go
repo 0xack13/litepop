@@ -3,8 +3,10 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"net"
 	"os"
+	"time"
 )
 
 func main() {
@@ -21,6 +23,7 @@ func main() {
 
 func handleconnection(c net.Conn) {
 	defer c.Close()
+	l := log.New(os.Stdout, "", 0)
 	reader := bufio.NewReader(c)
 	for {
 		// Reads a line from the client
@@ -29,6 +32,12 @@ func handleconnection(c net.Conn) {
 			fmt.Println("Error!!" + err.Error())
 			return
 		}
-		fmt.Print(raw_line)
+		Log(l, raw_line)
 	}
+	c.Close()
+}
+
+func Log(l *log.Logger, msg string) {
+	l.SetPrefix(time.Now().Format("2006-01-02 15:04:05") + " > ")
+	l.Print(msg)
 }
