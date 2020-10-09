@@ -33,24 +33,32 @@ func main() {
 func handleconnection(c net.Conn) string {
 	defer c.Close()
 	// initialize state wuth UNAUTHORIZED
-	var (
-		eol = "\r\n"
-		// state = 1
-	)
+	// var (
+	// 	eol = "\r\n"
+	// 	// state = 1
+	// )
 	l := log.New(os.Stdout, "", 0)
 	reader := bufio.NewReader(c)
-	fmt.Fprintf(c, "+OK simple POP3 server %s"+eol, host)
-
+	_, err := fmt.Fprintf(c, "+OK simple POP3 server %s\n", host)
+	// message, err := bufio.NewReader(c).ReadString('\n')
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	// fmt.Print("->: " + message)
 	for {
-		// Reads a line from the client
 		rawline, err := reader.ReadString('\n')
+		// line := strings.Trim(rawline, "\r")
 		if err != nil {
 			fmt.Println(err.Error())
 			return "error"
 		}
-		if rawline == "QUIT\n" {
-			fmt.Println("Good bye!")
-			c.Close()
+		// fmt.Println(line)
+		// test uses \n
+		// real uses \r\n
+		if rawline == "QUIT\r\n" {
+			// fmt.Fprint(c, "Good bye!")
+			// fmt.Print("Good bye!")
+			// c.Close()
 			return "quitting"
 		}
 		Log(l, rawline)
