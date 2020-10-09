@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 	"testing"
@@ -14,9 +15,22 @@ func TestClient_handle_quits_succcesffuly(t *testing.T) {
 	// r.SetReadDeadline(time.Now().Add(timeoutDuration))
 	go func() {
 		w.Write([]byte("QUIT\r\n"))
+		// w.Close()
 	}()
-	// print(r.Read())
-	if handleconnection(r) == "quitting" {
+	reader := bufio.NewReader(r)
+	//read welcome message
+	msg, err := reader.ReadString('\n')
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(msg)
+	// msg, err = reader.ReadString('\n')
+	// if err != nil {
+	// 	t.Fatal(err)
+	// }
+	// // print(r.Read())
+	// fmt.Println(msg)
+	if handleconnection(r, w) == "quitting" {
 		fmt.Println("Success")
 		return
 	}
