@@ -26,41 +26,62 @@ func main() {
 	}
 	for {
 		c, _ := conn.Accept()
-		go handleconnection(c)
+		go handleconnection(c, c)
 	}
 }
 
-func handleconnection(c net.Conn) string {
-	defer c.Close()
+func handleconnection(c net.Conn, cc net.Conn) {
+	// defer c.Close()
 	// initialize state wuth UNAUTHORIZED
 	// var (
 	// 	eol = "\r\n"
 	// 	// state = 1
 	// )
-	l := log.New(os.Stdout, "", 0)
-	reader := bufio.NewReader(c)
+	// l := log.New(os.Stdout, "", 0)
 	go func() {
-		c.Write([]byte("+OK Litepop server ready\r\n"))
+		// cc.Write([]byte("+OK Litepop server ready\r\n"))
+		// cc.Close()
+		fmt.Fprintf(cc, "+OK Litepop server ready\r\n")
 	}()
+	reader := bufio.NewReader(c)
 
-	// message, err := bufio.NewReader(c).ReadString('\n')
 	for {
+		// go func() {
+		// 	fmt.Fprint(c, "For loop!\n")
+		// }()
 		rawline, err := reader.ReadString('\n')
-		// line := strings.Trim(rawline, "\r")
 		if err != nil {
-			fmt.Println(err.Error())
-			return "error"
-		}
-		// fmt.Println(line)
-		// test uses \n
-		// real uses \r\n
-		if rawline == "QUIT\r\n" {
-			// fmt.Fprint(c, "Good bye!")
+			// fmt.Println("errrrorr: " + err.Error())
+			// return "error"
+			continue
+		} else if rawline == "QUIT\r\n" {
+			go func() {
+				cc.Write([]byte("Good bye!\r\n"))
+				c.Close()
+			}()
 			// fmt.Print("Good bye!")
 			// c.Close()
-			return "quitting"
+			// return "quitting"
+		} else if rawline == "USER\r\n" {
+			go func() {
+				// fmt.Fprint(c, "Good bye!\n")
+				cc.Write([]byte("gooood byeee\n"))
+				cc.Close()
+				// c.Close()
+			}()
+			// fmt.Print("Good bye!")
+			// c.Close()
+			// return "USER_OK"
+		} else {
+			go func() {
+				// fmt.Fprint(c, "Good bye!\n")
+				cc.Write([]byte("Command not supported\r\n"))
+				// cc.Close()
+				// c.Close()
+			}()
 		}
-		Log(l, rawline)
+		// Log(l, rawline)
+		// return "true"
 	}
 }
 

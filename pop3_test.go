@@ -2,10 +2,11 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"testing"
+	"time"
 )
 
 type recordingConn struct {
@@ -18,43 +19,119 @@ func (c *recordingConn) Write(buf []byte) (int, error) {
 }
 
 func TestClient_handle_quits_succcesffuly(t *testing.T) {
-	// var r ConnMock
+	expected := "+OK Litepop server ready\r\nGood bye!\r\n"
 	r, w := net.Pipe()
 	defer r.Close()
 	var buf bytes.Buffer
 	r = &recordingConn{
 		Conn:   r,
 		Writer: io.MultiWriter(w, &buf),
-		// Writer: io.Copy,
 	}
-	// defer w.Close()
-	// timeoutDuration := 2 * time.Second
-	// r.SetReadDeadline(time.Now().Add(timeoutDuration))
 	go func() {
 		w.Write([]byte("QUIT\r\n"))
 		// w.Close()
 	}()
 	// fmt.Println(handleconnection(r))
-	if handleconnection(r) == "quitting" {
-		fmt.Println("Success")
-		return
+	// if handleconnection(r, w) == "quitting" {
+	// 	fmt.Println("Success")
+	// 	return
+	// }
+	// t.Fail()
+	go func() {
+		handleconnection(r, w)
+	}()
+	// fmt.Println(handleconnection(r))
+	// var b []byte
+	b, _ := ioutil.ReadAll(r)
+	// if err != nil {
+	// 	fmt.Println("errrrr  ")
+	// 	fmt.Println(err)
+	// }
+	// fmt.Println("mystring *****" + string(b))
+	if string(b) != expected {
+		t.Fatalf("Not matching expected quit message")
 	}
-	// panic("test")
+
 }
 
-// func TestClient_handle_timeout(t *testing.T) {
-// 	r, w := net.Pipe()
-// 	defer w.Close()
-// 	defer r.Close()
-// 	timeoutDuration := 2 * time.Second
-// 	r.SetReadDeadline(time.Now().Add(timeoutDuration))
-// 	go func() {
-// 		w.Write([]byte("NOVAL\n"))
-// 	}()
+func TestClient_handle_user_succcesffuly(t *testing.T) {
+	r, w := net.Pipe()
+	// defer r.Close()
+	// defer w.Close()
+	// var buf bytes.Buffer
+	// r = &recordingConn{
+	// 	Conn:   r,
+	// 	Writer: io.MultiWriter(w, &buf),
+	// }
+	go func() {
+		w.Write([]byte("USER\r\n"))
+		// w.Close()
+	}()
+	go func() {
+		handleconnection(r, w)
+	}()
+	// fmt.Println(handleconnection(r))
+	// var b []byte
+	// b, err := ioutil.ReadAll(r)
+	// if err != nil {
+	// 	fmt.Println("errrrr  ")
+	// 	fmt.Println(err)
+	// }
+	// fmt.Println("mystring *****" + string(b))
+	// w.Close()
+	// r.Close()
+	// t.Fail()
+	// buf1 := make([]byte, 0, 4096) // big buffer
+	// tmp := make([]byte, 256)      // using small tmo buffer for demonstrating
+	// for {
+	// 	n, err := r.Read(tmp)
+	// 	if err != nil {
+	// 		if err != io.EOF {
+	// 			fmt.Println("read error:", err)
+	// 		}
+	// 		break
+	// 	}
+	// 	//fmt.Println("got", n, "bytes.")
+	// 	buf1 = append(buf1, tmp[:n]...)
 
-// 	if handleconnection(r) == "quitting" {
-// 		fmt.Println("Success")
-// 		return
-// 	}
-// 	// return
-// }
+	// }
+	// fmt.Println("total size:", len(buf1))
+	// fmt.Println(string(buf1))
+	// go func() {
+	// 	w.Write([]byte("USER\r\n"))
+	// 	// w.Close()
+	// }()
+	// r.Close()
+	// w.Close()
+}
+
+func TestClient_handle_timeout(t *testing.T) {
+	r, w := net.Pipe()
+	defer r.Close()
+	var buf bytes.Buffer
+	r = &recordingConn{
+		Conn:   r,
+		Writer: io.MultiWriter(w, &buf),
+	}
+	// timoeout for testing only
+	timeoutDuration := time.Second
+	r.SetReadDeadline(time.Now().Add(timeoutDuration))
+	go func() {
+		w.Write([]byte("NOVAL\n"))
+	}()
+
+	go func() {
+		handleconnection(r, w)
+	}()
+
+	// if handleconnection(r, w) == "quitting" {
+	// 	fmt.Println("Success")
+	// 	return
+	// }
+	// t.Fail()
+	expected := "+OK Litepop server ready\r\nCommand not supported\r\n"
+	b, _ := ioutil.ReadAll(r)
+	if string(b) != expected {
+		t.Fatalf("Not matching expected quit message")
+	}
+}
