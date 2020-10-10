@@ -39,12 +39,11 @@ func handleconnection(c net.Conn) string {
 	// )
 	l := log.New(os.Stdout, "", 0)
 	reader := bufio.NewReader(c)
-	// _, err := fmt.Fprintf(c, "+OK simple POP3 server %s\n", host)
+	go func() {
+		c.Write([]byte("+OK Litepop server ready\r\n"))
+	}()
+
 	// message, err := bufio.NewReader(c).ReadString('\n')
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	// fmt.Print("->: " + message)
 	for {
 		rawline, err := reader.ReadString('\n')
 		// line := strings.Trim(rawline, "\r")
