@@ -26,11 +26,11 @@ func main() {
 	}
 	for {
 		c, _ := conn.Accept()
-		go handleconnection(c, c)
+		go handleconnection(c)
 	}
 }
 
-func handleconnection(c net.Conn, cc net.Conn) string {
+func handleconnection(c net.Conn) string {
 	defer c.Close()
 	// initialize state wuth UNAUTHORIZED
 	// var (
@@ -39,7 +39,7 @@ func handleconnection(c net.Conn, cc net.Conn) string {
 	// )
 	l := log.New(os.Stdout, "", 0)
 	reader := bufio.NewReader(c)
-	_, err := fmt.Fprintf(cc, "+OK simple POP3 server %s\n", host)
+	// _, err := fmt.Fprintf(c, "+OK simple POP3 server %s\n", host)
 	// message, err := bufio.NewReader(c).ReadString('\n')
 	if err != nil {
 		fmt.Println(err.Error())

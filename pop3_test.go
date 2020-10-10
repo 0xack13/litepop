@@ -2,14 +2,31 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
+	"io"
 	"net"
 	"testing"
 )
 
+type recordingConn struct {
+	net.Conn
+	io.Writer
+}
+
+func (c *recordingConn) Write(buf []byte) (int, error) {
+	return c.Writer.Write(buf)
+}
+
 func TestClient_handle_quits_succcesffuly(t *testing.T) {
+	// var r ConnMock
 	r, w := net.Pipe()
-	defer w.Close()
+	var buf bytes.Buffer
+	r = &recordingConn{
+		Conn:   r,
+		Writer: io.MultiWriter(r, &buf),
+	}
+	// defer w.Close()
 	defer r.Close()
 	// timeoutDuration := 2 * time.Second
 	// r.SetReadDeadline(time.Now().Add(timeoutDuration))
@@ -30,7 +47,7 @@ func TestClient_handle_quits_succcesffuly(t *testing.T) {
 	// }
 	// // print(r.Read())
 	// fmt.Println(msg)
-	if handleconnection(r, w) == "quitting" {
+	if handleconnection(r) == "quitting" {
 		fmt.Println("Success")
 		return
 	}
